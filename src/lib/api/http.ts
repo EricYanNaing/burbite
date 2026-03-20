@@ -41,6 +41,28 @@ export async function apiPost<TResponse, TBody = unknown>(
   });
 }
 
+export async function apiPatch<TResponse, TBody = unknown>(
+  path: string,
+  body: TBody,
+  options: Omit<ApiRequestOptions<TBody>, "body"> = {},
+) {
+  return apiRequest<TResponse, TBody>(path, {
+    ...options,
+    method: "PATCH",
+    body,
+  });
+}
+
+export async function apiDelete<TResponse>(
+  path: string,
+  options: Omit<ApiRequestOptions, "body"> = {},
+) {
+  return apiRequest<TResponse>(path, {
+    ...options,
+    method: "DELETE",
+  });
+}
+
 async function apiRequest<TResponse, TBody = unknown>(
   path: string,
   { params, body, errorMessage = "Request failed.", headers, ...init }: ApiRequestOptions<TBody> = {},
