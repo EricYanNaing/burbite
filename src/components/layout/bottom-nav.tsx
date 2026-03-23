@@ -22,7 +22,7 @@ export function BottomNav() {
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.16 }}
-      className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-30 w-[calc(100vw-2rem)] max-w-[406px] -translate-x-1/2 rounded-[28px] border border-border/80 bg-background/94 px-3 py-3 shadow-[0_24px_60px_rgba(56,37,26,0.18)] backdrop-blur"
+      className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-30 w-[calc(100vw-2rem)] max-w-[406px] -translate-x-1/2 rounded-[28px] border border-border/80 bg-background/94 shadow-[0_24px_60px_rgba(56,37,26,0.18)] backdrop-blur"
     >
       <LayoutGroup id="bottom-nav">
         <div className="grid grid-cols-5 gap-2 rounded-[24px] bg-secondary/80 p-2">
