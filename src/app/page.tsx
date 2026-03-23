@@ -23,6 +23,7 @@ import { Reveal } from "@/components/animation/reveal";
 import { getBurbiteStats, getFeaturedBites } from "@/lib/data/bites";
 import { QuickBadge } from "@/components/home/quick-badge";
 import { NearbyShops } from "@/components/home/nearby-shops";
+import { QuickPick } from "@/components/home/quick-pick";
 
 export default async function Home() {
   // Server Component: render data here, then hand interactive pieces to clients.
@@ -91,7 +92,11 @@ export default async function Home() {
       </Reveal>
 
       <Reveal delay={0.3}>
-        <NearbyShops slidesPerView={1} />
+        <NearbyShops />
+      </Reveal>
+
+      <Reveal delay={0.4}>
+        <QuickPick items={featured} />
       </Reveal>
 
     </div>
