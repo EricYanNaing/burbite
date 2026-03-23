@@ -44,12 +44,9 @@ export function HighlightCarousel({ items }: HighlightCarouselProps) {
     <section className="space-y-3">
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            Client carousel
-          </p>
-          <h2 className="text-2xl font-semibold">Featured now</h2>
+          <h2 className="text-2xl font-semibold">Popular Now</h2>
         </div>
-        <div className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+        <div className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-black">
           {String(current).padStart(2, "0")} / {String(items.length).padStart(2, "0")}
         </div>
       </div>
@@ -71,27 +68,27 @@ export function HighlightCarousel({ items }: HighlightCarouselProps) {
                   href={`/bites/${item.slug}`}
                   className="block overflow-hidden rounded-[28px] bg-card shadow-[0_18px_40px_rgba(58,42,31,0.09)] ring-1 ring-black/5"
                 >
-                  <div
-                    className="flex aspect-[4/3] flex-col justify-between p-5 text-white"
-                    style={{ backgroundImage: item.heroGradient }}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <Badge className="border-white/20 bg-white/12 text-white">
-                        {item.category}
-                      </Badge>
-                      <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs">
-                        <Star className="size-3.5 fill-current" />
-                        {item.rating.toFixed(1)}
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    {/* Blurred image layer — only this blurs */}
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.48) 0%, transparent 38%, transparent 52%, rgba(0,0,0,0.72) 100%), url('${item.heroImage}')`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    />
+                    {/* Content layer — sharp, sits above the blur */}
+                    <div className="relative z-10 flex h-full flex-col justify-between p-5 text-white">
+                      <div className="flex items-center justify-between gap-3">
+                        <Badge className="border-white/20 bg-primary p-3 text-white">
+                          {item.category}
+                        </Badge>
+                        <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs">
+                          <Star className="size-3.5 fill-current" />
+                          {item.rating.toFixed(1)}
+                        </div>
                       </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <h3 className="max-w-[13ch] text-3xl font-semibold leading-none">
-                        {item.name}
-                      </h3>
-                      <p className="max-w-[24ch] text-sm/6 text-white/75">
-                        {item.vibe}
-                      </p>
                     </div>
                   </div>
 
@@ -107,9 +104,18 @@ export function HighlightCarousel({ items }: HighlightCarouselProps) {
                       </span>
                     </div>
 
+                    <div className="space-y-2 text-black">
+                      <h3 className="max-w-[13ch] text-3xl font-semibold leading-none">
+                        {item.name}
+                      </h3>
+                      <p className="max-w-[24ch] text-sm/6">
+                        {item.vibe}
+                      </p>
+                    </div>
+
                     <div className="flex flex-wrap gap-2">
                       {item.tags.slice(0, 3).map((tag) => (
-                        <Badge key={tag} variant="secondary" className="rounded-full">
+                        <Badge key={tag} className="rounded-full text-white">
                           {tag}
                         </Badge>
                       ))}
@@ -135,9 +141,8 @@ export function HighlightCarousel({ items }: HighlightCarouselProps) {
               type="button"
               aria-label={`Go to slide ${index + 1}`}
               onClick={() => api?.scrollTo(index)}
-              className={`h-2.5 rounded-full transition-all ${
-                current === index + 1 ? "w-7 bg-primary" : "w-2.5 bg-border"
-              }`}
+              className={`h-2.5 rounded-full transition-all ${current === index + 1 ? "w-7 bg-primary" : "w-2.5 bg-border"
+                }`}
             />
           ))}
         </div>

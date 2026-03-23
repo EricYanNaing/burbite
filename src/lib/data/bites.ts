@@ -12,6 +12,7 @@ export type BiteVenue = {
   chefNote: string;
   pickupWindows: string[];
   heroGradient: string;
+  heroImage: string;
 };
 
 const bites: BiteVenue[] = [
@@ -30,6 +31,7 @@ const bites: BiteVenue[] = [
     chefNote:
       "Order the smoked mushroom add-on if you want a sharper umami finish.",
     pickupWindows: ["12:10", "12:30", "13:00"],
+    heroImage: "https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=800&q=80",
     heroGradient:
       "radial-gradient(circle at top left, rgba(255, 185, 141, 0.45), transparent 36%), linear-gradient(135deg, #251610 0%, #6b341f 45%, #d56c3d 100%)",
   },
@@ -48,6 +50,7 @@ const bites: BiteVenue[] = [
     chefNote:
       "The broth lands richer after a five-minute rest, so don’t rush the first sip.",
     pickupWindows: ["18:15", "18:45", "19:10"],
+    heroImage: "https://media.istockphoto.com/id/517972668/photo/burmese-noodle-with-chicken.webp?a=1&b=1&s=612x612&w=0&k=20&c=Emt2z5UGTTb4XB3XUKeQ7nTaDSUp5mjx35aRGx9rnMs=",
     heroGradient:
       "radial-gradient(circle at top right, rgba(200, 255, 225, 0.3), transparent 34%), linear-gradient(135deg, #163025 0%, #22583f 50%, #5ba16e 100%)",
   },
@@ -66,6 +69,7 @@ const bites: BiteVenue[] = [
     chefNote:
       "Ask for the extra pickled shallots if you want more bite in the wrap.",
     pickupWindows: ["11:40", "12:00", "12:20", "12:40"],
+    heroImage: "https://plus.unsplash.com/premium_photo-1712758600560-67cffbf3866f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fGJ1cm1lc2UlMjBmb29kfGVufDB8fDB8fHww",
     heroGradient:
       "radial-gradient(circle at top left, rgba(255, 235, 159, 0.38), transparent 36%), linear-gradient(135deg, #4f3414 0%, #9d6d18 50%, #f0b74b 100%)",
   },
@@ -84,6 +88,7 @@ const bites: BiteVenue[] = [
     chefNote:
       "Mix the bowl once, then add the chili vinegar in small hits so the pepper stays balanced.",
     pickupWindows: ["20:10", "20:40", "21:05"],
+    heroImage: "https://plus.unsplash.com/premium_photo-1661661992703-089c9c981ab9?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fGJ1cm1lc2UlMjBmb29kfGVufDB8fDB8fHww",
     heroGradient:
       "radial-gradient(circle at top left, rgba(255, 172, 172, 0.28), transparent 30%), linear-gradient(135deg, #1d1c28 0%, #4d2d47 45%, #b9514f 100%)",
   },
@@ -102,6 +107,7 @@ const bites: BiteVenue[] = [
     chefNote:
       "The bento sells out first around 12:30, so earlier pickups usually win.",
     pickupWindows: ["12:05", "12:25", "12:55"],
+    heroImage: "https://images.unsplash.com/photo-1709734545554-03f7c019627f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YnVybWVzZSUyMGZvb2R8ZW58MHx8MHx8fDA%3D",
     heroGradient:
       "radial-gradient(circle at top right, rgba(220, 245, 255, 0.34), transparent 33%), linear-gradient(135deg, #112737 0%, #23536f 45%, #5b91b1 100%)",
   },
@@ -120,6 +126,7 @@ const bites: BiteVenue[] = [
     chefNote:
       "Go half spicy if you want the kimchi butter to stay forward instead of the heat.",
     pickupWindows: ["19:00", "19:30", "20:00"],
+    heroImage: "https://www.freepik.com/premium-photo/thai-style-food-green-curry-with-chicken-delicious-vegetable-asian-dinner_32776294.htm#fromView=search&page=1&position=12&uuid=23934268-f7f5-42ef-8bad-9cc2f1ab5b8a&query=burmese+foods",
     heroGradient:
       "radial-gradient(circle at top left, rgba(255, 208, 170, 0.34), transparent 34%), linear-gradient(135deg, #30130d 0%, #83361d 50%, #f17b3f 100%)",
   },

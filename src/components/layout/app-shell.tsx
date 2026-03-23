@@ -34,7 +34,7 @@ export function AppShell({ children }: AppShellProps) {
 
             <main
               id="app-shell-scroll"
-              className="flex-1 overflow-y-auto bg-white px-4 pb-[calc(8.5rem+env(safe-area-inset-bottom))] pt-4"
+              className="flex-1 overflow-y-auto bg-white px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-4"
             >
               {children}
             </main>
