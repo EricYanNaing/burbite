@@ -1,12 +1,11 @@
+import Link from "next/link";
 import { getNearbyShops } from "@/lib/data/shop";
 import {
     Carousel,
     CarouselContent,
     CarouselItem,
-    type CarouselApi,
 } from "@/components/ui/carousel";
-import { ArrowRight, Clock3, MapPin, Star } from "lucide-react";
-import { Badge } from "../ui/badge";
+import { Clock3, MapPin, Star } from "lucide-react";
 
 export async function NearbyShops() {
     const shops = await getNearbyShops();
@@ -24,7 +23,10 @@ export async function NearbyShops() {
                 <CarouselContent className="-ml-3 py-3">
                     {shops.map((item) => (
                         <CarouselItem key={item.id} className="cursor-pointer">
-                            <div className="overflow-hidden rounded-[28px] ring-1 ring-black/5">
+                            <Link
+                                href={`/shops/${item.slug}`}
+                                className="block overflow-hidden rounded-[28px] ring-1 ring-black/5"
+                            >
                                 <div className="relative aspect-[6/3] overflow-hidden">
                                     <div
                                         className="absolute inset-0 transition-all duration-300"
@@ -46,11 +48,11 @@ export async function NearbyShops() {
                                             )}
                                         </div>
                                         <div className="flex justify-between gap-3">
-                                            <span className="font-semibold text-white">
-                                                {item.name}
-                                            </span>
-                                        </div>
+                                        <span className="font-semibold text-white">
+                                            {item.name}
+                                        </span>
                                     </div>
+                                </div>
                                 </div>
 
                                 <div className="space-y-4 p-5">
@@ -72,7 +74,7 @@ export async function NearbyShops() {
                                         </h5>
                                     </div>
                                 </div>
-                            </div>
+                            </Link>
                         </CarouselItem>
                     ))}
                 </CarouselContent>

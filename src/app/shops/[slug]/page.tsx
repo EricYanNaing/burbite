@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Clock3,
   MapPin,
+  Phone,
   Sparkles,
   Star,
   Store,
@@ -17,49 +18,39 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getBiteBySlug } from "@/lib/data/bites";
-import { getShopById } from "@/lib/data/shop";
+import { getBitesForShop } from "@/lib/data/bites";
+import { getShopBySlug } from "@/lib/data/shop";
 
-type BiteDetailPageProps = {
+type ShopDetailPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-function parseEtaMinutes(eta: string) {
-  return Number.parseInt(eta, 10) || 0;
-}
-
-export default async function BiteDetailPage({ params }: BiteDetailPageProps) {
+export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
   const { slug } = await params;
-  const bite = await getBiteBySlug(slug);
+  const shop = await getShopBySlug(slug);
 
-  if (!bite) {
+  if (!shop) {
     notFound();
   }
 
-  const shopsWithOffers = (
-    await Promise.all(
-      bite.shopOffers.map(async (offer) => {
-        const shop = await getShopById(offer.shopId);
+  const shopBites = (await getBitesForShop(shop.id))
+    .map((bite) => {
+      const offer = bite.shopOffers.find((entry) => entry.shopId === shop.id);
 
-        if (!shop) {
-          return null;
-        }
+      if (!offer) {
+        return null;
+      }
 
-        return { offer, shop };
-      }),
-    )
-  ).filter(
-    (
-      entry,
-    ): entry is {
-      offer: (typeof bite.shopOffers)[number];
-      shop: NonNullable<Awaited<ReturnType<typeof getShopById>>>;
-    } => entry !== null,
-  );
-
-  const fastestEta = [...bite.shopOffers].sort(
-    (left, right) => parseEtaMinutes(left.eta) - parseEtaMinutes(right.eta),
-  )[0]?.eta;
+      return { bite, offer };
+    })
+    .filter(
+      (
+        entry,
+      ): entry is {
+        bite: Awaited<ReturnType<typeof getBitesForShop>>[number];
+        offer: Awaited<ReturnType<typeof getBitesForShop>>[number]["shopOffers"][number];
+      } => entry !== null,
+    );
 
   return (
     <div className="space-y-5">
@@ -73,79 +64,106 @@ export default async function BiteDetailPage({ params }: BiteDetailPageProps) {
 
       <section
         className="overflow-hidden rounded-[30px] p-5 text-white"
-        style={{ backgroundImage: bite.heroGradient }}
+        style={{
+          backgroundImage: `${shop.heroGradient}, linear-gradient(135deg, rgba(10, 8, 7, 0.26), rgba(10, 8, 7, 0.72)), url('${shop.image}')`,
+          backgroundPosition: "center",
+          backgroundSize: "cover",
+        }}
       >
         <div className="flex items-center justify-between gap-3">
           <Badge className="border-white/20 bg-white/12 text-white">
-            {bite.category}
+            {shop.neighborhood}
           </Badge>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-sm">
-            <Store className="size-3.5" />
-            {bite.shopOffers.length} shops
-          </div>
+          <Badge
+            variant={shop.open ? "secondary" : "outline"}
+            className="rounded-full"
+          >
+            {shop.open ? "Open now" : "Closed"}
+          </Badge>
         </div>
 
         <div className="mt-16 space-y-3">
-          <p className="text-sm text-white/75">Searchable via food, category, slug, and shop names.</p>
           <h1 className="max-w-[12ch] text-4xl font-semibold leading-none">
-            {bite.name}
+            {shop.name}
           </h1>
-          <p className="max-w-[34ch] text-sm/6 text-white/80">
-            {bite.description}
+          <p className="max-w-[34ch] text-sm/6 text-white/82">
+            {shop.description}
           </p>
 
           <div className="flex flex-wrap gap-2 pt-1">
-            {bite.searchAliases.map((alias) => (
-              <Badge key={alias} className="border-white/20 bg-white/12 text-white">
-                {alias}
+            {shop.specialties.map((specialty) => (
+              <Badge
+                key={specialty}
+                className="border-white/20 bg-white/12 text-white"
+              >
+                {specialty}
               </Badge>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="grid grid-cols-3 gap-3">
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Card className="rounded-[22px] border-none shadow-none ring-1 ring-black/5">
           <CardContent className="space-y-1 py-4">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              <Store className="size-3.5" />
-              Shops
+              <Star className="size-3.5" />
+              Rating
             </div>
-            <p className="text-xl font-semibold">{bite.shopOffers.length}</p>
+            <p className="text-xl font-semibold">{shop.rating.toFixed(1)}</p>
           </CardContent>
         </Card>
         <Card className="rounded-[22px] border-none shadow-none ring-1 ring-black/5">
           <CardContent className="space-y-1 py-4">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
               <Clock3 className="size-3.5" />
-              Fastest ETA
+              Pickup ETA
             </div>
-            <p className="text-xl font-semibold">{fastestEta ?? bite.eta}</p>
+            <p className="text-xl font-semibold">{shop.eta}</p>
           </CardContent>
         </Card>
         <Card className="rounded-[22px] border-none shadow-none ring-1 ring-black/5">
           <CardContent className="space-y-1 py-4">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              <Sparkles className="size-3.5" />
-              Starts at
+              <MapPin className="size-3.5" />
+              Distance
             </div>
-            <p className="text-xl font-semibold">{bite.price}</p>
+            <p className="text-xl font-semibold">{shop.distance} km</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-[22px] border-none shadow-none ring-1 ring-black/5">
+          <CardContent className="space-y-1 py-4">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              <Store className="size-3.5" />
+              Hours
+            </div>
+            <p className="text-xl font-semibold">
+              {shop.openTime} - {shop.closeTime}
+            </p>
           </CardContent>
         </Card>
       </section>
 
       <Card className="rounded-[26px] border-none shadow-none ring-1 ring-black/5">
         <CardHeader>
-          <CardTitle>Chef note</CardTitle>
-          <CardDescription>{bite.chefNote}</CardDescription>
+          <CardTitle>Order info</CardTitle>
+          <CardDescription>
+            Phase 1 only shows shop information and menu coverage. There is no
+            cart or account flow yet.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pb-5">
-          <div className="flex flex-wrap gap-2">
-            {bite.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="rounded-full">
-                {tag}
-              </Badge>
-            ))}
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Address</p>
+            <p className="text-sm text-muted-foreground">{shop.address}</p>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Phone</p>
+            <p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+              <Phone className="size-4" />
+              {shop.phone}
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -153,29 +171,29 @@ export default async function BiteDetailPage({ params }: BiteDetailPageProps) {
       <section className="space-y-3">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-semibold">Where to get {bite.name}</h2>
+            <h2 className="text-2xl font-semibold">Available dishes</h2>
             <p className="text-sm text-muted-foreground">
-              Choose a shop to view full details, hours, and everything we know
-              for phase 1 ordering.
+              Open a dish to compare this shop against the other places carrying
+              it.
             </p>
           </div>
           <div className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-black">
-            {shopsWithOffers.length} shops
+            {shopBites.length} dishes
           </div>
         </div>
 
         <div className="space-y-3">
-          {shopsWithOffers.map(({ offer, shop }) => (
+          {shopBites.map(({ bite, offer }) => (
             <Link
-              key={`${bite.slug}-${shop.id}`}
-              href={`/shops/${shop.slug}`}
+              key={`${shop.id}-${bite.slug}`}
+              href={`/bites/${bite.slug}`}
               className="block overflow-hidden rounded-[26px] bg-card ring-1 ring-black/5 transition-transform hover:-translate-y-0.5"
             >
               <div className="flex flex-col gap-4 p-4 md:flex-row">
                 <div
                   className="h-28 rounded-[22px] md:w-48"
                   style={{
-                    backgroundImage: `linear-gradient(135deg, rgba(15,12,10,0.12), rgba(15,12,10,0.58)), url('${shop.image}')`,
+                    backgroundImage: `linear-gradient(135deg, rgba(15,12,10,0.12), rgba(15,12,10,0.58)), url('${bite.heroImage}')`,
                     backgroundPosition: "center",
                     backgroundSize: "cover",
                   }}
@@ -184,29 +202,17 @@ export default async function BiteDetailPage({ params }: BiteDetailPageProps) {
                 <div className="min-w-0 flex-1 space-y-3">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="space-y-1">
-                      <h3 className="text-xl font-semibold">{shop.name}</h3>
+                      <h3 className="text-xl font-semibold">{bite.name}</h3>
                       <p className="text-sm text-muted-foreground">
                         {offer.note}
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <Badge className="rounded-full bg-secondary text-secondary-foreground">
-                        {offer.price}
-                      </Badge>
-                      <Badge
-                        variant={shop.open ? "secondary" : "outline"}
-                        className="rounded-full"
-                      >
-                        {shop.open ? "Open" : "Closed"}
-                      </Badge>
-                    </div>
+                    <Badge className="rounded-full bg-secondary text-secondary-foreground">
+                      {offer.price}
+                    </Badge>
                   </div>
 
                   <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                    <span className="inline-flex items-center gap-1.5">
-                      <MapPin className="size-4" />
-                      {offer.neighborhood}
-                    </span>
                     <span className="inline-flex items-center gap-1.5">
                       <Clock3 className="size-4" />
                       {offer.eta}
@@ -215,21 +221,26 @@ export default async function BiteDetailPage({ params }: BiteDetailPageProps) {
                       <Star className="size-4 fill-current" />
                       {offer.rating.toFixed(1)}
                     </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Sparkles className="size-4" />
+                      {bite.category}
+                    </span>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    {offer.pickupWindows.slice(0, 3).map((window) => (
-                      <span
-                        key={`${shop.id}-${window}`}
-                        className="rounded-full border border-border bg-secondary px-3 py-1 text-sm text-secondary-foreground"
+                    {bite.searchAliases.slice(0, 2).map((alias) => (
+                      <Badge
+                        key={`${bite.slug}-${alias}`}
+                        variant="outline"
+                        className="rounded-full"
                       >
-                        {window}
-                      </span>
+                        {alias}
+                      </Badge>
                     ))}
                   </div>
 
                   <div className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
-                    Open shop detail
+                    Compare all shops for this dish
                     <ArrowRight className="size-4" />
                   </div>
                 </div>

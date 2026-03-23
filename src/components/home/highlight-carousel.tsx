@@ -54,10 +54,10 @@ export function HighlightCarousel({ items }: HighlightCarouselProps) {
       <Carousel setApi={setApi} opts={{ align: "start", loop: true }}>
         <CarouselContent className="-ml-3">
           {items.map((item) => (
-            <CarouselItem key={item.slug} className="basis-[88%] pl-3">
+            <CarouselItem key={item.id} className="basis-[88%] pl-3">
               <motion.div
                 animate={
-                  items[current - 1]?.slug === item.slug
+                  items[current - 1]?.id === item.id
                     ? { opacity: 1, y: 0, scale: 1 }
                     : { opacity: 0.74, y: 10, scale: 0.96 }
                 }
