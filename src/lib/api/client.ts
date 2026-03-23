@@ -1,4 +1,5 @@
 import type { BiteVenue } from "@/lib/data/bites";
+import type { Shop } from "@/lib/data/shop";
 import { apiGet, apiPost } from "@/lib/api/http";
 import {
   reservationSchema,
@@ -15,7 +16,24 @@ type BitesResponse = {
   nextPage: number | null;
 };
 
+type ShopsResponse = {
+  items: Shop[];
+  total: number;
+  query: string;
+  page: number;
+  limit: number;
+  hasMore: boolean;
+  nextPage: number | null;
+};
+
 type FetchBitesOptions = {
+  query?: string;
+  page?: number;
+  limit?: number;
+  signal?: AbortSignal;
+};
+
+type FetchShopsOptions = {
   query?: string;
   page?: number;
   limit?: number;
@@ -34,6 +52,24 @@ export async function fetchBites({
   signal,
 }: FetchBitesOptions = {}): Promise<BitesResponse> {
   return apiGet<BitesResponse>("/bites", {
+    params: {
+      q: query.trim() || undefined,
+      page,
+      limit,
+    },
+    cache: "no-store",
+    signal,
+    errorMessage: "Could not load the BurBite feed.",
+  });
+}
+
+export async function fetchShops({
+  query = "",
+  page = 1,
+  limit = 3,
+  signal,
+}: FetchShopsOptions = {}): Promise<ShopsResponse> {
+  return apiGet<ShopsResponse>("/shops", {
     params: {
       q: query.trim() || undefined,
       page,

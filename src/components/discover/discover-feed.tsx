@@ -8,7 +8,6 @@ import {
   ArrowRight,
   Clock3,
   Flame,
-  History,
   LoaderCircle,
   MapPin,
   Search,
@@ -109,16 +108,10 @@ export function DiscoverFeed({
     true,
   );
   const search = useUiStore((state) => state.discoverSearch);
-  const recentDiscoverSearches = useUiStore(
-    (state) => state.recentDiscoverSearches,
-  );
   const setDiscoverSearch = useUiStore((state) => state.setDiscoverSearch);
   const clearDiscoverSearch = useUiStore((state) => state.clearDiscoverSearch);
   const saveRecentDiscoverSearch = useUiStore(
     (state) => state.saveRecentDiscoverSearch,
-  );
-  const clearRecentDiscoverSearches = useUiStore(
-    (state) => state.clearRecentDiscoverSearches,
   );
   const trimmedSearch = search.trim();
   const debouncedSearch = useDebouncedValue(trimmedSearch, 360);
@@ -144,7 +137,6 @@ export function DiscoverFeed({
     !bitesQuery.isFetchingNextPage &&
     !bitesQuery.isPending;
   const hasSearch = trimmedSearch.length > 0;
-  const hasRecentSearches = recentDiscoverSearches.length > 0;
   const noResultsSuggestions = trendingSearches.slice(0, 3).join(", ");
 
   useEffect(() => {
@@ -238,7 +230,7 @@ export function DiscoverFeed({
         </CardHeader>
       </Card>
 
-      {!hasSearch ? (
+      {/* {!hasSearch ? (
         <Card className="rounded-[24px] border-none shadow-none ring-1 ring-black/5">
           <CardHeader className="gap-5">
             {hasRecentSearches ? (
@@ -285,7 +277,7 @@ export function DiscoverFeed({
             </div>
           </CardHeader>
         </Card>
-      ) : null}
+      ) : null} */}
 
       {!hasSearch ? (
         <Card className="rounded-[24px] border-none shadow-none ring-1 ring-black/5">
@@ -381,6 +373,17 @@ export function DiscoverFeed({
 }
 
 function DiscoverFeedCard({ item }: { item: BiteVenue }) {
+  const searchAliases = Array.isArray(item.searchAliases)
+    ? item.searchAliases
+    : [];
+  const tags = Array.isArray(item.tags) ? item.tags : [];
+  const shopOffers = Array.isArray(item.shopOffers) ? item.shopOffers : [];
+  const neighborhoods = shopOffers
+    .map((offer) => offer.neighborhood)
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(" · ");
+
   return (
     <Card className="overflow-hidden rounded-[26px] border-none shadow-none ring-1 ring-black/5">
       <div className="aspect-[4/1] w-full" style={{ backgroundImage: item.heroGradient }} />
@@ -400,12 +403,12 @@ function DiscoverFeedCard({ item }: { item: BiteVenue }) {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {item.searchAliases.slice(0, 2).map((alias) => (
+          {searchAliases.slice(0, 2).map((alias) => (
             <Badge key={alias} variant="outline" className="rounded-full">
               {alias}
             </Badge>
           ))}
-          {item.tags.map((tag) => (
+          {tags.map((tag) => (
             <Badge key={tag} variant="secondary" className="rounded-full">
               {tag}
             </Badge>
@@ -416,14 +419,11 @@ function DiscoverFeedCard({ item }: { item: BiteVenue }) {
         <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <Store className="size-4" />
-            {item.shopOffers.length} shops
+            {shopOffers.length} shops
           </span>
           <span className="inline-flex items-center gap-1.5">
             <MapPin className="size-4" />
-            {item.shopOffers
-              .map((offer) => offer.neighborhood)
-              .slice(0, 2)
-              .join(" · ")}
+            {neighborhoods || item.neighborhood}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Clock3 className="size-4" />
@@ -439,7 +439,7 @@ function DiscoverFeedCard({ item }: { item: BiteVenue }) {
           href={`/bites/${item.slug}`}
           className="inline-flex items-center gap-2 text-sm font-semibold text-primary"
         >
-          See all {item.shopOffers.length} shops
+          See all {shopOffers.length} shops
           <ArrowRight className="size-4" />
         </Link>
       </CardContent>
@@ -479,6 +479,11 @@ function SearchSuggestionChips({
 }
 
 function PopularFoodCard({ item }: { item: BiteVenue }) {
+  const searchAliases = Array.isArray(item.searchAliases)
+    ? item.searchAliases
+    : [];
+  const shopOffers = Array.isArray(item.shopOffers) ? item.shopOffers : [];
+
   return (
     <Link
       href={`/bites/${item.slug}`}
@@ -500,7 +505,7 @@ function PopularFoodCard({ item }: { item: BiteVenue }) {
           <div className="min-w-0">
             <p className="truncate font-semibold">{item.name}</p>
             <p className="truncate text-sm text-muted-foreground">
-              {item.shopOffers.length} shops carrying it
+              {shopOffers.length} shops carrying it
             </p>
           </div>
           <Badge className="rounded-full bg-secondary text-secondary-foreground">
@@ -509,7 +514,7 @@ function PopularFoodCard({ item }: { item: BiteVenue }) {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {item.searchAliases.slice(0, 2).map((alias) => (
+          {searchAliases.slice(0, 2).map((alias) => (
             <Badge key={alias} variant="outline" className="rounded-full">
               {alias}
             </Badge>
