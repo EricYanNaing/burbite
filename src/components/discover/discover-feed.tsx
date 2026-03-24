@@ -1,6 +1,5 @@
 "use client";
 
-import InfiniteScroll from "react-infinite-scroll-component";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -24,12 +23,16 @@ import { Button } from "@/components/ui/button";
 import { DiscoverFeedSkeleton } from "@/components/discover/discover-feed-skeleton";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 
 const PAGE_SIZE = 3;
 
@@ -103,6 +106,7 @@ export function DiscoverFeed({
   trendingSearches,
   categorySearches,
 }: DiscoverFeedProps) {
+  const loadMoreRef = useRef<HTMLDivElement>(null);
   const animatedPlaceholder = useAnimatedPlaceholder(
     PLACEHOLDER_SUGGESTIONS,
     true,
@@ -132,11 +136,17 @@ export function DiscoverFeed({
   const items = bitesQuery.data?.pages.flatMap((page) => page.items) ?? [];
   const total = bitesQuery.data?.pages[0]?.total ?? 0;
   const isInitialLoad = bitesQuery.isPending;
+  const fetchNextPage = bitesQuery.fetchNextPage;
+  const hasNextPage = bitesQuery.hasNextPage;
+  const isQueryPending = bitesQuery.isPending;
+  const isFetchSuccessful = bitesQuery.isSuccess;
+  const isFetchingNextPage = bitesQuery.isFetchingNextPage;
   const isRefreshing =
     bitesQuery.isFetching &&
-    !bitesQuery.isFetchingNextPage &&
+    !isFetchingNextPage &&
     !bitesQuery.isPending;
   const hasSearch = trimmedSearch.length > 0;
+  const hasMoreResults = Boolean(hasNextPage);
   const noResultsSuggestions = trendingSearches.slice(0, 3).join(", ");
 
   useEffect(() => {
@@ -144,6 +154,54 @@ export function DiscoverFeed({
 
     scrollableArea?.scrollTo({ top: 0, behavior: "smooth" });
   }, [debouncedSearch]);
+
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    const scrollableArea = document.getElementById("app-shell-scroll");
+
+    if (
+      !sentinel ||
+      !scrollableArea ||
+      !isFetchSuccessful ||
+      !hasMoreResults
+    ) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+
+        if (
+          entry?.isIntersecting &&
+          !isFetchingNextPage &&
+          !isQueryPending &&
+          hasNextPage
+        ) {
+          void fetchNextPage();
+        }
+      },
+      {
+        root: scrollableArea,
+        rootMargin: "220px 0px",
+      },
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [
+    debouncedSearch,
+    hasMoreResults,
+    isFetchSuccessful,
+    isFetchingNextPage,
+    items.length,
+    fetchNextPage,
+    hasNextPage,
+    isQueryPending,
+  ]);
 
   const applySearch = (value: string) => {
     const nextValue = value.trim();
@@ -280,22 +338,32 @@ export function DiscoverFeed({
       ) : null} */}
 
       {!hasSearch ? (
-        <Card className="rounded-[24px] border-none shadow-none ring-1 ring-black/5">
-          <CardHeader className="gap-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Flame className="size-4 text-primary" />
-              Popular foods
-            </CardTitle>
-            <CardDescription>
-              Tap a card to see which shops carry the dish.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {popularFoods.map((item) => (
-              <PopularFoodCard key={item.slug} item={item} />
-            ))}
-          </CardContent>
-        </Card>
+        <div className="space-y-3">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <h5 className="flex items-center gap-2 text-lg font-semibold">
+                <Flame className="size-4 text-primary" />
+                Popular Dishes
+              </h5>
+              <p className="pt-1 text-sm text-muted-foreground">
+                Featured cards for browsing first. The faster comparison list
+                starts right below.
+              </p>
+            </div>
+            <div className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground ring-1 ring-black/5">
+              {popularFoods.length} picks
+            </div>
+          </div>
+          <Carousel opts={{ align: "start", loop: true }}>
+            <CarouselContent className="-ml-3">
+              {popularFoods.map((item) => (
+                <CarouselItem key={item.id} className="basis-[88%] pl-3">
+                  <PopularFoodCard key={item.slug} item={item} />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+        </div>
       ) : null}
 
       {bitesQuery.isError ? (
@@ -314,18 +382,38 @@ export function DiscoverFeed({
       {isInitialLoad ? <DiscoverFeedSkeleton count={2} /> : null}
 
       {!isInitialLoad && bitesQuery.isSuccess && items.length > 0 ? (
-        <InfiniteScroll
-          key={debouncedSearch || "discover-feed"}
-          dataLength={items.length}
-          next={() => void bitesQuery.fetchNextPage()}
-          hasMore={Boolean(bitesQuery.hasNextPage)}
-          loader={
-            <div className="pt-4">
+        <section className="space-y-4">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <h5 className="text-lg font-semibold">
+                {hasSearch ? "Search Results" : "Choose Your Shop"}
+              </h5>
+              <p className="pt-1 text-sm text-muted-foreground">
+                Compact marketplace cards to compare shop, ETA, price, and dish
+                fit quickly.
+              </p>
+            </div>
+            <div className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground ring-1 ring-black/5">
+              {items.length} / {total}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {items.map((item) => (
+              <DiscoverFeedCard key={item.slug} item={item} />
+            ))}
+          </div>
+
+          {isFetchingNextPage ? (
+            <div className="pt-1">
               <DiscoverFeedSkeleton count={1} />
             </div>
-          }
-          endMessage={
-            <Card className="mt-4 rounded-[24px] border-none shadow-none ring-1 ring-black/5">
+          ) : null}
+
+          {hasMoreResults ? (
+            <div ref={loadMoreRef} aria-hidden="true" className="h-1 w-full" />
+          ) : (
+            <Card className="rounded-[24px] border-none shadow-none ring-1 ring-black/5">
               <CardHeader>
                 <CardTitle>All caught up</CardTitle>
                 <CardDescription>
@@ -335,17 +423,8 @@ export function DiscoverFeed({
                 </CardDescription>
               </CardHeader>
             </Card>
-          }
-          scrollThreshold="160px"
-          scrollableTarget="app-shell-scroll"
-          style={{ overflow: "visible" }}
-        >
-          <div className="space-y-4">
-            {items.map((item) => (
-              <DiscoverFeedCard key={item.slug} item={item} />
-            ))}
-          </div>
-        </InfiniteScroll>
+          )}
+        </section>
       ) : null}
 
       {!isInitialLoad && bitesQuery.isSuccess && items.length === 0 ? (
@@ -378,72 +457,105 @@ function DiscoverFeedCard({ item }: { item: BiteVenue }) {
     : [];
   const tags = Array.isArray(item.tags) ? item.tags : [];
   const shopOffers = Array.isArray(item.shopOffers) ? item.shopOffers : [];
+  const highlightTags = Array.from(new Set([...tags, ...searchAliases])).slice(
+    0,
+    3,
+  );
   const neighborhoods = shopOffers
     .map((offer) => offer.neighborhood)
     .filter(Boolean)
     .slice(0, 2)
     .join(" · ");
+  const shopCountLabel = `${shopOffers.length} ${shopOffers.length === 1 ? "shop" : "shops"}`;
 
   return (
-    <Card className="overflow-hidden rounded-[26px] border-none shadow-none ring-1 ring-black/5">
-      <div className="aspect-[4/1] w-full" style={{ backgroundImage: item.heroGradient }} />
-      <CardHeader className="gap-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1">
-            <CardTitle>{item.name}</CardTitle>
-            <div className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Store className="size-4" />
-              {item.shopName}
-            </div>
-            <CardDescription>{item.description}</CardDescription>
+    <Link
+      href={`/bites/${item.slug}`}
+      className="group block overflow-hidden rounded-[28px] bg-card p-3 shadow-[0_12px_28px_rgba(58,42,31,0.07)] ring-1 ring-black/5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(58,42,31,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+    >
+      <div className="flex gap-3">
+        <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-[22px]">
+          <div
+            className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
+            style={{
+              backgroundImage: `linear-gradient(to top, rgba(15, 12, 10, 0.72), rgba(15, 12, 10, 0.12) 56%), url('${item.heroImage}')`,
+              backgroundPosition: "center",
+              backgroundSize: "cover",
+            }}
+          />
+          <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 p-3 text-white">
+            <Badge className="h-auto rounded-full border border-white/15 bg-black/25 px-2.5 py-1 text-white backdrop-blur-sm">
+              {item.price}
+            </Badge>
           </div>
-          <Badge className="rounded-full bg-secondary text-secondary-foreground">
-            {item.price}
-          </Badge>
+          <div className="absolute inset-x-0 bottom-0 p-3 text-white">
+            <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/25 px-2.5 py-1 text-[11px] font-medium backdrop-blur-sm">
+              <Clock3 className="size-3.5" />
+              {item.eta}
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {searchAliases.slice(0, 2).map((alias) => (
-            <Badge key={alias} variant="outline" className="rounded-full">
-              {alias}
-            </Badge>
-          ))}
-          {tags.map((tag) => (
-            <Badge key={tag} variant="secondary" className="rounded-full">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 space-y-1">
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-medium tracking-[0.08em] uppercase text-muted-foreground">
+                <Store className="size-3.5 text-primary" />
+                {item.shopName}
+              </div>
+              <h3 className="text-lg font-semibold leading-tight text-foreground">
+                {item.name}
+              </h3>
+              <p className="text-sm text-muted-foreground">{item.category}</p>
+            </div>
+
+            <div className="rounded-[18px] bg-secondary/80 px-3 py-2 text-right ring-1 ring-black/5">
+              <div className="inline-flex items-center gap-1 text-sm font-semibold text-foreground">
+                <Star className="size-3.5 fill-current text-primary" />
+                {item.rating.toFixed(1)}
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Top rated
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2 text-xs text-foreground">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary/80 px-2.5 py-1 ring-1 ring-black/5">
+              <Store className="size-3.5 text-primary" />
+              {shopCountLabel}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary/80 px-2.5 py-1 ring-1 ring-black/5">
+              <MapPin className="size-3.5 text-primary" />
+              {neighborhoods || item.neighborhood}
+            </span>
+          </div>
+
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            {item.description}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between gap-3 border-t border-black/5 pt-3">
+        <div className="flex min-w-0 flex-wrap gap-2">
+          {highlightTags.map((tag) => (
+            <Badge
+              key={tag}
+              variant="outline"
+              className="h-auto rounded-full border-black/10 bg-background/80 px-3 py-1 text-foreground"
+            >
               {tag}
             </Badge>
           ))}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4 pb-5">
-        <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5">
-            <Store className="size-4" />
-            {shopOffers.length} shops
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <MapPin className="size-4" />
-            {neighborhoods || item.neighborhood}
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <Clock3 className="size-4" />
-            from {item.eta}
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <Star className="size-4 fill-current" />
-            {item.rating.toFixed(1)}
-          </span>
-        </div>
 
-        <Link
-          href={`/bites/${item.slug}`}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-primary"
-        >
-          See all {shopOffers.length} shops
-          <ArrowRight className="size-4" />
-        </Link>
-      </CardContent>
-    </Card>
+        <span className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-primary">
+          View shops
+          <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+        </span>
+      </div>
+    </Link>
   );
 }
 
@@ -479,46 +591,120 @@ function SearchSuggestionChips({
 }
 
 function PopularFoodCard({ item }: { item: BiteVenue }) {
-  const searchAliases = Array.isArray(item.searchAliases)
-    ? item.searchAliases
-    : [];
+  const tags = Array.isArray(item.tags) ? item.tags : [];
   const shopOffers = Array.isArray(item.shopOffers) ? item.shopOffers : [];
 
   return (
     <Link
       href={`/bites/${item.slug}`}
-      className="flex w-full items-center gap-3 rounded-[22px] bg-card p-3 text-left ring-1 ring-black/5 transition-transform hover:-translate-y-0.5"
+      className="group block overflow-hidden rounded-[28px] bg-card text-left shadow-[0_14px_34px_rgba(58,42,31,0.08)] ring-1 ring-black/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(58,42,31,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
     >
-      <div className="relative size-16 overflow-hidden rounded-[18px] ring-1 ring-black/5">
+      <div className="relative overflow-hidden">
         <div
-          className="absolute inset-0"
+          className="aspect-[4/3] w-full transition-transform duration-500 group-hover:scale-[1.03]"
           style={{
-            backgroundImage: `linear-gradient(135deg, rgba(15,12,10,0.12), rgba(15,12,10,0.55)), url('${item.heroImage}')`,
+            backgroundImage: `linear-gradient(to top, rgba(15, 12, 10, 0.88), rgba(15, 12, 10, 0.18) 58%), url('${item.heroImage}')`,
             backgroundPosition: "center",
             backgroundSize: "cover",
           }}
         />
-      </div>
 
-      <div className="min-w-0 flex-1 space-y-1">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="truncate font-semibold">{item.name}</p>
-            <p className="truncate text-sm text-muted-foreground">
-              {shopOffers.length} shops carrying it
-            </p>
-          </div>
-          <Badge className="rounded-full bg-secondary text-secondary-foreground">
-            {item.rating.toFixed(1)}
+        <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4 text-white">
+          <Badge className="h-auto rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-medium tracking-[0.12em] uppercase text-white backdrop-blur-sm">
+            Popular pick
           </Badge>
+          <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/20 px-3 py-1 text-xs font-semibold backdrop-blur-sm">
+            <Star className="size-3.5 fill-current" />
+            {item.rating.toFixed(1)}
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {searchAliases.slice(0, 2).map((alias) => (
-            <Badge key={alias} variant="outline" className="rounded-full">
-              {alias}
+        <div className="absolute inset-x-0 bottom-0 space-y-2 p-4 text-white">
+          <Badge className="h-auto rounded-full border border-white/15 bg-primary px-3 py-1 text-white shadow-[0_8px_24px_rgba(227,24,55,0.28)]">
+            {item.category}
+          </Badge>
+          <div className="space-y-1">
+            <h3 className="max-w-[13ch] text-[1.7rem] font-semibold leading-[1.05]">
+              {item.name}
+            </h3>
+            <p className="max-w-[28ch] text-sm leading-6 text-white/80">
+              {item.vibe}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4 p-4">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-[20px] bg-secondary/80 p-3 ring-1 ring-black/5">
+            <div className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <Store className="size-3.5" />
+              Shops
+            </div>
+            <p className="mt-2 text-base font-semibold text-foreground">
+              {shopOffers.length} nearby
+            </p>
+          </div>
+          <div className="rounded-[20px] bg-secondary/80 p-3 ring-1 ring-black/5">
+            <div className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <Clock3 className="size-3.5" />
+              ETA
+            </div>
+            <p className="mt-2 text-base font-semibold text-foreground">
+              From {item.eta}
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-[22px] bg-[#ebe8e1] p-3 ring-1 ring-black/5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <p className="text-xs font-medium tracking-[0.08em] uppercase text-muted-foreground">
+                Best matched shop
+              </p>
+              <p className="text-sm font-semibold text-foreground">
+                {item.shopName}
+              </p>
+              <div className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MapPin className="size-3.5" />
+                {item.neighborhood}
+              </div>
+            </div>
+            <Badge
+              variant="outline"
+              className="h-auto rounded-full border-black/10 bg-background/80 px-3 py-1 font-semibold text-foreground"
+            >
+              {item.price}
             </Badge>
-          ))}
+          </div>
+        </div>
+
+        {tags.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {tags.slice(0, 3).map((tag) => (
+              <Badge
+                key={tag}
+                variant="outline"
+                className="h-auto rounded-full border-black/10 bg-background/80 px-3 py-1 text-foreground"
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="flex items-center justify-between border-t border-black/5 pt-1">
+          <div>
+            <p className="text-sm font-semibold text-foreground">
+              Compare shops carrying this dish
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Check pickup windows and the best fit nearby.
+            </p>
+          </div>
+          <span className="inline-flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform duration-300 group-hover:translate-x-1">
+            <ArrowRight className="size-4" />
+          </span>
         </div>
       </div>
     </Link>
