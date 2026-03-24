@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   const safePage = Number.isFinite(page) && page > 0 ? page : 1;
   const safeLimit =
     Number.isFinite(limit) && limit > 0 ? Math.min(limit, 6) : 3;
-  const items = await getShops();
+  const items = await getShops(query);
   const startIndex = (safePage - 1) * safeLimit;
   const pageItems = items.slice(startIndex, startIndex + safeLimit);
   const hasMore = startIndex + safeLimit < items.length;

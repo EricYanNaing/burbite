@@ -25,7 +25,7 @@ export function AppShell({ children }: AppShellProps) {
                     <p className="text-lg font-semibold">BurBite</p>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <MapPin className="size-3.5" />
-                      Bangkok picks, mobile shell
+                      Silom, Bangkok
                     </div>
                   </div>
                 </Link>

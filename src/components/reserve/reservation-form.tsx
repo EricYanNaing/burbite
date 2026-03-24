@@ -44,7 +44,7 @@ export function ReservationForm() {
   return (
     <Card className="rounded-[28px] border-none shadow-none ring-1 ring-black/5">
       <CardHeader>
-        <CardTitle>Reservation form</CardTitle>
+        <CardTitle>Book your table</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5 pb-5">
         <form className="space-y-4" onSubmit={onSubmit}>
@@ -99,10 +99,10 @@ export function ReservationForm() {
             {reservationMutation.isPending ? (
               <>
                 <LoaderCircle className="size-4 animate-spin" />
-                Sending request
+                Sending booking
               </>
             ) : (
-              "Submit reservation"
+              "Request reservation"
             )}
           </Button>
         </form>

@@ -14,14 +14,13 @@ export default async function DiscoverPage() {
 
   return (
     <div className="space-y-5">
-      <section
-        className="text-black"
-      >
+      <section className="text-black">
         <h1 className="mt-5 text-3xl font-semibold leading-tight">
-          Nearby Myanmar Bites
+          Search dishes and shops
         </h1>
-        <p className="mt-3 max-w-[30ch] text-sm/6 text-black/70">
-          Authentic Burmese flavors curated for the Bangkok palate.
+        <p className="mt-3 max-w-[34ch] text-sm/6 text-black/70">
+          Use search when you already know what you want. Home stays focused on
+          discovery, while this screen helps you decide faster.
         </p>
       </section>
 

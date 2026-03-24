@@ -1,63 +1,72 @@
-import Link from "next/link";
-import {
-  Compass,
-  Database,
-  Server,
-  Smartphone,
-  Sparkles,
-  ArrowRight, Clock3, MapPin, Star
-} from "lucide-react";
-import { motion } from "motion/react";
 import { HighlightCarousel } from "@/components/home/highlight-carousel";
-import { QuickSave } from "@/components/home/quick-save";
-import { Badge } from "@/components/ui/badge";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Reveal } from "@/components/animation/reveal";
-import { getBurbiteStats, getFeaturedBites } from "@/lib/data/bites";
-import { QuickBadge } from "@/components/home/quick-badge";
+import { HomeSearchEntry } from "@/components/home/home-search-entry";
 import { NearbyShops } from "@/components/home/nearby-shops";
+import { QuickBadge } from "@/components/home/quick-badge";
 import { QuickPick } from "@/components/home/quick-pick";
+import { Reveal } from "@/components/animation/reveal";
+import { Badge } from "@/components/ui/badge";
+import {
+  getBurbiteStats,
+  getFeaturedBites,
+  getTrendingBiteSearches,
+} from "@/lib/data/bites";
 
 export default async function Home() {
-  // Server Component: render data here, then hand interactive pieces to clients.
-  const [featured, stats] = await Promise.all([
+  const [featured, stats, trendingSearches] = await Promise.all([
     getFeaturedBites(),
     getBurbiteStats(),
+    getTrendingBiteSearches(4),
   ]);
-
-  const stackNotes = [
-    {
-      icon: Server,
-      title: "Server-rendered home",
-      body: "This route loads featured bites directly in a Server Component before the UI streams down.",
-    },
-    {
-      icon: Smartphone,
-      title: "Client interactions",
-      body: "The carousel and save toggle are Client Components, so you can see the boundary clearly.",
-    },
-    {
-      icon: Compass,
-      title: "API + Query",
-      body: "The Discover tab uses TanStack Query against a Route Handler so the fetch pattern stays reusable.",
-    },
-    {
-      icon: Database,
-      title: "Prisma CRUD demo",
-      body: "The Posts route shows the same pattern against PostgreSQL with Prisma so you can extend it later.",
-    },
-  ];
 
   return (
     <div className="space-y-6">
       <Reveal>
+        <section className="space-y-4">
+          <div className="space-y-2">
+            <p className="text-xs font-medium tracking-[0.14em] uppercase text-muted-foreground">
+              Delivery Now In Bangkok
+            </p>
+            <h1 className="max-w-[14ch] text-3xl font-semibold leading-tight text-foreground">
+              Myanmar comfort food, built for fast dinner decisions.
+            </h1>
+            <p className="max-w-[34ch] text-sm/6 text-muted-foreground">
+              Search for dishes, compare kitchens, and jump into the right flow
+              without bouncing between duplicate tabs.
+            </p>
+          </div>
+
+          <HomeSearchEntry quickSearches={trendingSearches} />
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-[22px] bg-card p-4 ring-1 ring-black/5">
+              <p className="text-xs font-medium tracking-[0.12em] uppercase text-muted-foreground">
+                Live Dishes
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">
+                {stats.liveDrops}
+              </p>
+            </div>
+            <div className="rounded-[22px] bg-card p-4 ring-1 ring-black/5">
+              <p className="text-xs font-medium tracking-[0.12em] uppercase text-muted-foreground">
+                Avg ETA
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">
+                {stats.averageEta}
+              </p>
+            </div>
+            <div className="rounded-[22px] bg-card p-4 ring-1 ring-black/5">
+              <p className="text-xs font-medium tracking-[0.12em] uppercase text-muted-foreground">
+                Open Slots
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">
+                {stats.tonightSlots}
+              </p>
+            </div>
+          </div>
+        </section>
+      </Reveal>
+
+      <Reveal delay={0.1}>
         <section
           className="relative overflow-hidden rounded-[28px] p-5 text-white shadow-[0_22px_60px_rgba(96,45,18,0.30)]"
           style={{
@@ -69,36 +78,37 @@ export default async function Home() {
           }}
         >
           <div className="mt-8 space-y-3">
-            <Badge className="text-primary bg-white text-xs font-semibold">TODAY'S SPECIAL</Badge>
-            <h1 className="max-w-[12ch] text-4xl leading-none font-semibold">
+            <Badge className="bg-white text-xs font-semibold text-primary">
+              Today&apos;s Special
+            </Badge>
+            <h2 className="max-w-[12ch] text-4xl font-semibold leading-none">
               Authentic
-              <p className="py-3">Mandalay</p>
-              <p>Mee Shay</p>
-            </h1>
+              <span className="block py-3">Mandalay</span>
+              <span className="block">Mee Shay</span>
+            </h2>
             <p className="max-w-[30ch] text-sm/6 text-white/78">
-              A rich, savory noodle soup with a complex broth and tender pork.
+              A rich, savory noodle bowl with tender pork, bold broth, and the
+              kind of depth that sells out first during the evening rush.
             </p>
           </div>
-
         </section>
       </Reveal>
 
-      <Reveal delay={0.1}>
+      <Reveal delay={0.2}>
         <QuickBadge slidesPerView={3} />
       </Reveal>
 
-      <Reveal delay={0.2}>
+      <Reveal delay={0.3}>
         <HighlightCarousel items={featured} />
       </Reveal>
 
-      <Reveal delay={0.3}>
+      <Reveal delay={0.4}>
         <NearbyShops />
       </Reveal>
 
-      <Reveal delay={0.4}>
+      <Reveal delay={0.5}>
         <QuickPick items={featured} />
       </Reveal>
-
     </div>
   );
 }

@@ -16,6 +16,10 @@ export type Shop = {
   description: string;
   specialties: string[];
   heroGradient: string;
+  mapPosition: {
+    x: number;
+    y: number;
+  };
 };
 
 const shops: Shop[] = [
@@ -40,6 +44,7 @@ const shops: Shop[] = [
     specialties: ["mohinga", "nan gyi thoke", "mont di"],
     heroGradient:
       "radial-gradient(circle at top left, rgba(255, 207, 153, 0.4), transparent 34%), linear-gradient(135deg, #2f180f 0%, #7a351d 48%, #d77a43 100%)",
+    mapPosition: { x: 46, y: 58 },
   },
   {
     id: "3",
@@ -62,6 +67,7 @@ const shops: Shop[] = [
     specialties: ["ohn no khaut swe", "mont di", "mohinga"],
     heroGradient:
       "radial-gradient(circle at top right, rgba(205, 255, 232, 0.35), transparent 32%), linear-gradient(135deg, #0d2b24 0%, #1c5a49 48%, #58a07a 100%)",
+    mapPosition: { x: 78, y: 46 },
   },
   {
     id: "5",
@@ -84,6 +90,7 @@ const shops: Shop[] = [
     specialties: ["laphet thoke", "ohn no khaut swe"],
     heroGradient:
       "radial-gradient(circle at top left, rgba(255, 235, 159, 0.34), transparent 34%), linear-gradient(135deg, #493011 0%, #8f6115 50%, #e6b34e 100%)",
+    mapPosition: { x: 28, y: 26 },
   },
   {
     id: "4",
@@ -106,6 +113,7 @@ const shops: Shop[] = [
     specialties: ["nan gyi thoke", "shan khaut swe"],
     heroGradient:
       "radial-gradient(circle at top left, rgba(255, 178, 178, 0.28), transparent 30%), linear-gradient(135deg, #171621 0%, #4a2941 45%, #b44d4c 100%)",
+    mapPosition: { x: 56, y: 34 },
   },
   {
     id: "6",
@@ -128,6 +136,7 @@ const shops: Shop[] = [
     specialties: ["mont di", "ohn no khaut swe"],
     heroGradient:
       "radial-gradient(circle at top right, rgba(220, 245, 255, 0.34), transparent 33%), linear-gradient(135deg, #102433 0%, #24516a 45%, #5f8fae 100%)",
+    mapPosition: { x: 43, y: 52 },
   },
   {
     id: "7",
@@ -150,6 +159,7 @@ const shops: Shop[] = [
     specialties: ["shan khaut swe", "nan gyi thoke"],
     heroGradient:
       "radial-gradient(circle at top left, rgba(255, 208, 170, 0.34), transparent 34%), linear-gradient(135deg, #2a130d 0%, #7f341a 50%, #f17b3f 100%)",
+    mapPosition: { x: 67, y: 28 },
   },
   {
     id: "8",
@@ -172,6 +182,7 @@ const shops: Shop[] = [
     specialties: ["mohinga", "laphet thoke"],
     heroGradient:
       "radial-gradient(circle at top left, rgba(226, 230, 237, 0.4), transparent 34%), linear-gradient(135deg, #1b2430 0%, #3f4f63 45%, #8798b3 100%)",
+    mapPosition: { x: 49, y: 61 },
   },
   {
     id: "9",
@@ -194,11 +205,79 @@ const shops: Shop[] = [
     specialties: ["mohinga", "laphet thoke", "shan khaut swe"],
     heroGradient:
       "radial-gradient(circle at top right, rgba(255, 241, 199, 0.35), transparent 34%), linear-gradient(135deg, #352417 0%, #705033 48%, #c89a62 100%)",
+    mapPosition: { x: 84, y: 54 },
   },
 ];
 
-export async function getShops() {
-  return shops;
+function normalizeQuery(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function getShopSearchScore(shop: Shop, normalizedQuery: string) {
+  if (!normalizedQuery) {
+    return 0;
+  }
+
+  const searchTokens = normalizedQuery.split(/\s+/).filter(Boolean);
+  const searchableFields = [
+    shop.name.toLowerCase(),
+    shop.slug.toLowerCase(),
+    shop.neighborhood.toLowerCase(),
+    shop.description.toLowerCase(),
+    shop.address.toLowerCase(),
+    ...shop.specialties.map((specialty) => specialty.toLowerCase()),
+  ];
+  let score = 0;
+
+  if (shop.name.toLowerCase().includes(normalizedQuery)) {
+    score += 60;
+  }
+
+  if (shop.neighborhood.toLowerCase().includes(normalizedQuery)) {
+    score += 34;
+  }
+
+  if (shop.specialties.some((specialty) => specialty.includes(normalizedQuery))) {
+    score += 24;
+  }
+
+  if (
+    searchTokens.length > 1 &&
+    searchTokens.every((token) =>
+      searchableFields.some((field) => field.includes(token)),
+    )
+  ) {
+    score += 22;
+  }
+
+  if (searchableFields.some((field) => field.includes(normalizedQuery))) {
+    score += 12;
+  }
+
+  return score;
+}
+
+export async function getShops(query = "") {
+  const normalizedQuery = normalizeQuery(query);
+
+  if (!normalizedQuery) {
+    return shops;
+  }
+
+  return shops
+    .map((shop) => ({
+      shop,
+      score: getShopSearchScore(shop, normalizedQuery),
+    }))
+    .filter((entry) => entry.score > 0)
+    .sort(
+      (left, right) =>
+        right.score - left.score ||
+        Number(right.shop.open) - Number(left.shop.open) ||
+        right.shop.rating - left.shop.rating ||
+        left.shop.distance - right.shop.distance,
+    )
+    .map((entry) => entry.shop);
 }
 
 export async function getNearbyShops() {

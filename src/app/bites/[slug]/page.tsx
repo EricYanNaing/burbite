@@ -68,7 +68,7 @@ export default async function BiteDetailPage({ params }: BiteDetailPageProps) {
         className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
-        Back to search
+        Back to results
       </Link>
 
       <section
@@ -142,7 +142,7 @@ export default async function BiteDetailPage({ params }: BiteDetailPageProps) {
         <CardContent className="space-y-4 pb-5">
           <div className="flex flex-wrap gap-2">
             {bite.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="rounded-full">
+              <Badge key={tag} variant="secondary" className="rounded-full bg-primary">
                 {tag}
               </Badge>
             ))}
@@ -190,12 +190,12 @@ export default async function BiteDetailPage({ params }: BiteDetailPageProps) {
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Badge className="rounded-full bg-secondary text-secondary-foreground">
+                      <Badge className="rounded-full bg-primary text-white">
                         {offer.price}
                       </Badge>
                       <Badge
                         variant={shop.open ? "secondary" : "outline"}
-                        className="rounded-full"
+                        className="rounded-full bg-primary"
                       >
                         {shop.open ? "Open" : "Closed"}
                       </Badge>
@@ -217,16 +217,6 @@ export default async function BiteDetailPage({ params }: BiteDetailPageProps) {
                     </span>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    {offer.pickupWindows.slice(0, 3).map((window) => (
-                      <span
-                        key={`${shop.id}-${window}`}
-                        className="rounded-full border border-border bg-secondary px-3 py-1 text-sm text-secondary-foreground"
-                      >
-                        {window}
-                      </span>
-                    ))}
-                  </div>
 
                   <div className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
                     Open shop detail

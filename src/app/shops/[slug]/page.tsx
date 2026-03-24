@@ -23,15 +23,23 @@ import { getShopBySlug } from "@/lib/data/shop";
 
 type ShopDetailPageProps = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ from?: string }>;
 };
 
-export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
+export default async function ShopDetailPage({
+  params,
+  searchParams,
+}: ShopDetailPageProps) {
   const { slug } = await params;
+  const { from } = await searchParams;
   const shop = await getShopBySlug(slug);
 
   if (!shop) {
     notFound();
   }
+
+  const backHref = from === "map" ? "/map" : "/shops";
+  const backLabel = from === "map" ? "Back to map" : "Back to shops";
 
   const shopBites = (await getBitesForShop(shop.id))
     .map((bite) => {
@@ -55,11 +63,11 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
   return (
     <div className="space-y-5">
       <Link
-        href="/search"
+        href={backHref}
         className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
-        Back to search
+        {backLabel}
       </Link>
 
       <section

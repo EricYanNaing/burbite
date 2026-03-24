@@ -1,17 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { Compass, Heart, Home, Search, Store } from "lucide-react";
+import { Compass, Home, Store } from "lucide-react";
 import { LayoutGroup, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/search", label: "Search", icon: Search },
-  { href: "/store", label: "Store", icon: Store },
-  { href: "/map", label: "Map", icon: Compass },
-  { href: "/favorites", label: "Favorites", icon: Heart },
+  {
+    href: "/",
+    label: "Home",
+    icon: Home,
+    matches: (pathname: string) =>
+      pathname === "/" ||
+      pathname.startsWith("/search") ||
+      pathname.startsWith("/bites/"),
+  },
+  {
+    href: "/shops",
+    label: "Shops",
+    icon: Store,
+    matches: (pathname: string) =>
+      pathname === "/shops" || pathname.startsWith("/shops/"),
+  },
+  {
+    href: "/map",
+    label: "Map",
+    icon: Compass,
+    matches: (pathname: string) => pathname === "/map",
+  },
 ];
 
 export function BottomNav() {
@@ -25,12 +42,10 @@ export function BottomNav() {
       className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-30 w-[calc(100vw-2rem)] max-w-[406px] -translate-x-1/2 rounded-[28px] border border-border/80 bg-background/94 shadow-[0_24px_60px_rgba(56,37,26,0.18)] backdrop-blur"
     >
       <LayoutGroup id="bottom-nav">
-        <div className="grid grid-cols-5 gap-2 rounded-[24px] bg-secondary/80 p-2">
+        <div className="grid grid-cols-3 gap-2 rounded-[24px] bg-secondary/80 p-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive =
-              pathname === item.href ||
-              (item.href === "/discover" && pathname.startsWith("/bites/"));
+            const isActive = item.matches(pathname);
 
             return (
               <Link

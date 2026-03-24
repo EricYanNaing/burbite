@@ -15,9 +15,12 @@ export async function NearbyShops() {
                 <div>
                     <h2 className="text-2xl font-semibold">Nearby Shops</h2>
                 </div>
-                <div className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-black">
-                    {shops.length} shops
-                </div>
+                <Link
+                    href="/shops"
+                    className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-black ring-1 ring-black/5"
+                >
+                    See all
+                </Link>
             </div>
             <Carousel opts={{ align: "start", loop: true }} className="py-3">
                 <CarouselContent className="-ml-3 py-3">
